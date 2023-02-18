@@ -17,7 +17,7 @@ namespace list_node_serialize
             bw.Write(Count);
 
             Dictionary<ListNode, int> indexes = new Dictionary<ListNode, int>(); //словарь для определения индексов (номеров) элементов
-            Dictionary<ListNode, HashSet<ListNode>> findingBy = new Dictionary<ListNode, HashSet<ListNode>>(); //словарь для определения элементов, "ищущих" данный
+            Dictionary<ListNode, HashSet<ListNode>> findingBy = new Dictionary<ListNode, HashSet<ListNode>>(); //словарь для определения элементов, ищущих данный
 
             ListNode node = Head; //текущий элемент
             int counter = 0;
@@ -31,29 +31,43 @@ namespace list_node_serialize
                 //если ссылка на произвольный элемент имеется
                 if (node.Rand != null)
                 {
-                    if (indexes.TryGetValue(node.Rand, out int indexRand)) //если известен индекс произвольного элемента
-                        WriteAsString(bw, node.Data, counter, indexRand); //записать элемент вместе с этим индексом
-                    else //иначе отметить, что текущий элемент "ищет" произвольный
+                    //если известен индекс произвольного элемента
+                    if (indexes.TryGetValue(node.Rand, out int indexRand))
                     {
-                        if (findingBy.TryGetValue(node.Rand, out HashSet<ListNode> finders)) //если набор элементов, "ищущих" текущий, уже имеется
-                            finders.Add(node); //добавить текущий элемент в этот набор
-                        else //иначе создать новый набор элементов, "ищущих" текущий, и добавить в него текущий элемент
+                        //записать элемент вместе с этим индексом
+                        WriteAsString(bw, node.Data, counter, indexRand);
+                    }
+                    else
+                    {
+                        //отметить, что текущий элемент ищет произвольный...
+
+                        //если набор элементов, ищущих произвольный, уже имеется
+                        if (findingBy.TryGetValue(node.Rand, out HashSet<ListNode> finders))
                         {
+                            //добавить текущий элемент в этот набор
+                            finders.Add(node);
+                        }
+                        else
+                        {
+                            //создать новый набор элементов, ищущих произвольный, и добавить в него текущий элемент
                             HashSet<ListNode> findersNew = new HashSet<ListNode>();
                             findersNew.Add(node);
                             findingBy.Add(node.Rand, findersNew);
                         }
                     }
                 }
-                else //записать элемент сразу
+                else
+                {
+                    //записать элемент, отметив, что ссылка на произвольный элемент отсутствует
                     WriteAsString(bw, node.Data, counter, -1);
+                }
 
-                //если текущий элемент кто-то "ищет"
+                //если имеется набор элементов, ищущих текущий
                 if (findingBy.TryGetValue(node, out HashSet<ListNode> findersNodes))
                 {
-                    //записать все "ищущие" элементы вместе с индексом текущего
+                    //записать все ищущие элементы из набора вместе с индексом текущего
                     foreach (ListNode finder in findersNodes)
-                        WriteAsString(bw, finder.Data, indexes[finder], counter); //записать "ищущий" элемент вместе с индексом текущего
+                        WriteAsString(bw, finder.Data, indexes[finder], counter);
                 }
 
                 //перейти к следующему элементу
@@ -72,7 +86,7 @@ namespace list_node_serialize
             Count = br.ReadInt32();
 
             ListNode[] list = new ListNode[Count]; //список элементов
-            Dictionary<int, HashSet<ListNode>> findingBy = new Dictionary<int, HashSet<ListNode>>(); //словарь для определения элементов, "ищущих" данный
+            Dictionary<int, HashSet<ListNode>> findingBy = new Dictionary<int, HashSet<ListNode>>(); //словарь для определения элементов, ищущих данный
 
             //пока поток не закончился
             while (s.Position < s.Length)
@@ -83,10 +97,10 @@ namespace list_node_serialize
                 ParseString(br, out string data, out int index, out int indexRand);
                 node.Data = data;
 
-                //поместить текущий элемент в указанное место по индексу
+                //поместить текущий элемент в указанное место списка по индексу
                 list[index] = node;
 
-                //связать соседние элементы
+                //связать текущий элемент с соседними
                 if (index > 0 && list[index - 1] != null)
                 {
                     node.Prev = list[index - 1];
@@ -98,17 +112,28 @@ namespace list_node_serialize
                     list[index + 1].Prev = node;
                 }
 
-                //если произвольный элемент был задан
+                //если индекс произвольного элемента задан
                 if (indexRand != -1)
                 {
-                    if (list[indexRand] != null) //если произвольный элемент имеется в списке
-                        node.Rand = list[indexRand]; //задать ссылку Rand на него
-                    else //иначе отметить, что текущий элемент "ищет" произвольный по индексу
+                    //если произвольный элемент имеется в списке
+                    if (list[indexRand] != null)
                     {
-                        if (findingBy.TryGetValue(indexRand, out HashSet<ListNode> finders)) //если набор элементов, "ищущих" произвольный, уже имеется
-                            finders.Add(node); //добавить текущий элемент в этот набор
-                        else //иначе создать новый набор элементов, "ищущих" произвольный, и добавить в него текущий элемент
+                        //задать ссылку на него
+                        node.Rand = list[indexRand];
+                    }
+                    else
+                    {
+                        //отметить, что текущий элемент ищет произвольный по индексу...
+
+                        //если набор элементов, ищущих произвольный, уже имеется
+                        if (findingBy.TryGetValue(indexRand, out HashSet<ListNode> finders))
                         {
+                            //добавить текущий элемент в этот набор
+                            finders.Add(node);
+                        }
+                        else
+                        {
+                            //создать новый набор элементов, ищущих произвольный, и добавить в него текущий элемент
                             HashSet<ListNode> findersNew = new HashSet<ListNode>();
                             findersNew.Add(node);
                             findingBy.Add(indexRand, findersNew);
@@ -116,10 +141,10 @@ namespace list_node_serialize
                     }
                 }
 
-                //если текущий элемент кто-то "ищет"
+                //если имеется набор элементов, ищущих текущий
                 if (findingBy.TryGetValue(index, out HashSet<ListNode> findersNodes))
                 {
-                    //задать ссылку Rand всех "ищущего" элемента на текущий элемент
+                    //у всех ищущих элементов из набора задать ссылку на текущий элемент
                     foreach (ListNode finder in findersNodes)
                         finder.Rand = node;
                 }

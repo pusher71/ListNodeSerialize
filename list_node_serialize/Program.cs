@@ -24,7 +24,7 @@ namespace list_node_serialize
 
         private static void SerializeTest()
         {
-            //создать список ListNode
+            //создать список элементов
             const int count = 8;
             ListNode[] nodes = new ListNode[count]
             {
@@ -38,7 +38,7 @@ namespace list_node_serialize
                 new ListNode() { Data = "Data7" }
             };
 
-            //задать соседей
+            //задать соседей у элементов
             for (int i = 0; i < count; i++)
             {
                 if (i > 0)
@@ -47,7 +47,7 @@ namespace list_node_serialize
                     nodes[i].Next = nodes[i + 1];
             }
 
-            //задать Rand
+            //задать ссылки на произвольные элементы
             nodes[0].Rand = nodes[3];
             nodes[1].Rand = nodes[3];
             nodes[3].Rand = nodes[5];
@@ -56,7 +56,7 @@ namespace list_node_serialize
             nodes[6].Rand = nodes[5];
             nodes[7].Rand = nodes[3];
 
-            //создать ListRand
+            //создать двусвязаный список
             ListRand list = new ListRand
             {
                 Head = nodes[0],
@@ -64,7 +64,7 @@ namespace list_node_serialize
                 Count = count
             };
 
-            //записать ListRand в файл
+            //записать его в файл
             FileStream s = new FileStream(fileName, FileMode.Create);
             list.Serialize(s);
             s.Close();
@@ -74,13 +74,13 @@ namespace list_node_serialize
 
         private static void DeserializeTest()
         {
-            //считать ListRand из файла
+            //считать двусвязаный список из файла
             FileStream s = new FileStream(fileName, FileMode.Open);
             ListRand list = new ListRand();
             list.Deserialize(s);
             s.Close();
 
-            //вывести в консоль
+            //для каждого элемента списка вывести в консоль его данные и данные соответствующего произвольного элемента
             ListNode node = list.Head;
             while (node != null)
             {
