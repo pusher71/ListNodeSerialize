@@ -88,10 +88,10 @@ namespace list_node_serialize
             ListNode[] list = new ListNode[Count]; //список элементов
             Dictionary<int, HashSet<ListNode>> findingBy = new Dictionary<int, HashSet<ListNode>>(); //словарь для определения элементов, ищущих данный
 
-            //пока поток не закончился
-            while (s.Position < s.Length)
+            //для всех записей в файле
+            for (int i = 0; i < Count; i++)
             {
-                ListNode node = new ListNode();
+                ListNode node = new ListNode(); //текущий элемент
 
                 //распарсить очередную запись
                 ParseString(br, out string data, out int index, out int indexRand);
